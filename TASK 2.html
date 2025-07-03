@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Car Stopwatch with Laps</title>
+  <style>
+    body {
+      margin: 0;
+      background: radial-gradient(#1c1c1c, #000);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+    }
+
+    .stopwatch {
+      width: 300px;
+      height: 300px;
+      background: #111;
+      border: 8px solid #444;
+      border-radius: 50%;
+      box-shadow: 0 0 40px rgba(255, 0, 0, 0.2);
+      position: relative;
+    }
+
+    .center-dot {
+      width: 12px;
+      height: 12px;
+      background: red;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+    }
+
+    .needle {
+      width: 2px;
+      height: 140px;
+      background: red;
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform-origin: bottom;
+      transform: rotate(0deg);
+      z-index: 2;
+    }
+
+    .time-display {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 1.5rem;
+      font-family: monospace;
+    }
+
+    .buttons {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: #333;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #555;
+    }
+
+    .laps {
+      margin-top: 20px;
+      width: 320px;
+      max-height: 150px;
+      overflow-y: auto;
+      background: #222;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .lap-item {
+      border-bottom: 1px solid #444;
+      padding: 5px 0;
+      display: flex;
+      justify-content: space-between;
+      font-family: monospace;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="stopwatch">
+    <div class="needle" id="needle"></div>
+    <div class="center-dot"></div>
+    <div class="time-display" id="timeDisplay">00:00.00</div>
+  </div>
+
+  <div class="buttons">
+    <button onclick="startStop()">Start</button>
+    <button onclick="recordLap()" id="lapBtn" disabled>Lap</button>
+    <button onclick="reset()">Reset</button>
+  </div>
+
+  <div class="laps" id="laps"></div>
+
+  <script>
+    let startTime = null;
+    let interval = null;
+    let elapsed = 0;
+    let running = false;
+    let lapCount = 0;
+
+    const needle = document.getElementById('needle');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const lapContainer = document.getElementById('laps');
+    const lapBtn = document.getElementById('lapBtn');
+
+    function formatTime(ms) {
+      let totalSeconds = Math.floor(ms / 1000);
+      let minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+      let seconds = (totalSeconds % 60).toString().padStart(2, '0');
+      let hundredths = Math.floor((ms % 1000) / 10).toString().padStart(2, '0');
+      return `${minutes}:${seconds}.${hundredths}`;
+    }
+
+    function update() {
+      let now = Date.now();
+      elapsed = now - startTime;
+      timeDisplay.textContent = formatTime(elapsed);
+      const degrees = ((elapsed / 1000) % 60) * 6;
+      needle.style.transform = `rotate(${degrees}deg)`;
+    }
+
+    function startStop() {
+      if (!running) {
+        startTime = Date.now() - elapsed;
+        interval = setInterval(update, 10);
+        lapBtn.disabled = false;
+        running = true;
+      } else {
+        clearInterval(interval);
+        running = false;
+        lapBtn.disabled = true;
+      }
+    }
+
+    function reset() {
+      clearInterval(interval);
+      elapsed = 0;
+      lapCount = 0;
+      running = false;
+      timeDisplay.textContent = '00:00.00';
+      needle.style.transform = 'rotate(0deg)';
+      lapContainer.innerHTML = '';
+      lapBtn.disabled = true;
+    }
+
+    function recordLap() {
+      lapCount++;
+      const lapTime = formatTime(elapsed);
+      const lapItem = document.createElement('div');
+      lapItem.classList.add('lap-item');
+      lapItem.innerHTML = `<span>Lap ${lapCount}</span><span>${lapTime}</span>`;
+      lapContainer.prepend(lapItem);
+    }
+  </script>
+</body>
+</html>
